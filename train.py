@@ -38,7 +38,7 @@ from torch.autograd import Variable
 from torch.optim import Adam
 import torchvision.transforms as transforms
 from utils import save_video_grid, count_model_params
-from video_dataset import VideoFolder, video_loader
+from video_dataset import *
 from torch.utils.data import DataLoader
 import model as model
 
@@ -61,13 +61,13 @@ parser.add_argument('--use_ckpt', type=bool, default=False, help='continue train
 parser.add_argument('--ckpt_path', action='append', help='list of path(s) to training checkpoints to continue training or for testing, [0] Generator and [1] Discriminator, default=``')
 parser.add_argument('--data_root', type=str, default='', help='path to root directory of training data (ex. -->path_to_dataset/train)')
 parser.add_argument('--log_dir', type=str, default='./logs', help='path to directory of log files')
-parser.add_argument('--experiment_name', type=str, default='', help='name of experiment (if empty, current date and time will be used), default=``')
+parser.add_argument('--experiment_name', type=str, default='mmnist', help='name of experiment (if empty, current date and time will be used), default=``')
 
 parser.add_argument('--d_cond', type=bool, default=True, help='condition discriminator on input frames, default=`True`')
-parser.add_argument('--nc', type=int, default=3, help='number of input image color channels, default=3')
-parser.add_argument('--max_resl', type=int, default=128, help='max. frame resolution --> image size: max_resl x max_resl , default=128')
-parser.add_argument('--nframes_in', type=int, default=6, help='number of input video frames in one sample, default=12')
-parser.add_argument('--nframes_pred', type=int, default=6, help='number of video frames to predict in one sample, default=6')
+parser.add_argument('--nc', type=int, default=1, help='number of input image color channels, default=3')
+parser.add_argument('--max_resl', type=int, default=64, help='max. frame resolution --> image size: max_resl x max_resl , default=128')
+parser.add_argument('--nframes_in', type=int, default=10, help='number of input video frames in one sample, default=12')
+parser.add_argument('--nframes_pred', type=int, default=10, help='number of video frames to predict in one sample, default=6')
 # p100
 parser.add_argument('--batch_size_table', type=dict, default={4:32, 8:16, 16:8, 32:4, 64:2, 128:1, 256:1, 512:1, 1024:1}, help='batch size table:{img_resl:batch_size, ...}, change according to available gpu memory')
 ## dgx
@@ -105,6 +105,7 @@ parser.add_argument('--tb_logging', type=bool, default=False, help='enable tenso
 parser.add_argument('--update_tb_every', type=int, default=100, help='display progress every specified iteration, default=100')
 parser.add_argument('--save_img_every', type=int, default=100, help='save images every specified iteration, default=100')
 parser.add_argument('--save_ckpt_every', type=int, default=5, help='save checkpoints every specified epoch, default=5')
+
 
 # parse and save training config
 config = parser.parse_args()
@@ -451,14 +452,18 @@ class Trainer:
 
 
     def renew_everything(self):
-
         # renew dataloader
-        self.img_size = int(pow(2,min(floor(self.resl), self.max_resl)))
-        self.batch_size = int(self.batch_size_table[pow(2,min(floor(self.resl), self.max_resl))])
-        self.video_loader = video_loader
-        self.transform_video = transforms.Compose([transforms.Resize(size=(self.img_size,self.img_size), interpolation=Image.NEAREST), transforms.ToTensor(),])
-        self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
-        self.dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.nworkers)
+        self.img_size = int(pow(2, min(floor(self.resl), self.max_resl)))
+        self.batch_size = 8
+        self.dataset = load_dataset(self.experiment_name)
+        self.dataloader = DataLoader(self.dataset,
+                                  num_workers=5,
+                                  batch_size=self.batch_size,
+                                  shuffle=True,
+                                  drop_last=True,
+                                  pin_memory=True)
+        # self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
+        # self.dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.nworkers)
         self.epoch_tick = int(ceil(len(self.dataset)/self.batch_size))
 
         # define tensors
@@ -543,7 +548,8 @@ class Trainer:
         # train loop
         for step in range(self.start_resl, self.max_resl+2):
 
-            for iter in tqdm(range(self.iter_start,(self.trns_tick+self.stab_tick)*int(ceil(len(self.dataset)/self.batch_size)))):
+            for iter in tqdm(range(self.iter_start,
+                                   (self.trns_tick+self.stab_tick)*int(ceil(len(self.dataset)/self.batch_size)))):
 
                 self.iter = iter
                 self.globalIter = self.globalIter+1

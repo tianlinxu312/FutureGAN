@@ -120,3 +120,8 @@ def get_out_dim_conv_transpose(dim, k, stride, pad):
 def count_model_params(model):
     
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+
+
+
