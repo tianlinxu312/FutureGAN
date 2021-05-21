@@ -93,8 +93,7 @@ class PixelwiseNormLayer(nn.Module):
 
     def forward(self, x):
         return x / (torch.mean(x**2, dim=1, keepdim=True) + self.eps) ** 0.5
-  
-   
+
     
 class EqualizedConv3d(nn.Module):
     
@@ -107,14 +106,14 @@ class EqualizedConv3d(nn.Module):
         self.conv_w = self.conv.weight.data.clone()
         self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.conv.weight.data ** 2)) ** 0.5
-        self.scale = self.scale.type(torch.FloatTensor)
+        self.scale = self.scale.type(torch.cuda.FloatTensor)
         self.weight_d = self.conv.weight.data/self.scale
-        self.conv.weight.data.copy_(self.weight_d.type(torch.FloatTensor))
+        self.conv.weight.data.copy_(self.weight_d)
 
 
     def forward(self, x):
         inputs = x.mul(self.scale)
-        x = self.conv(inputs.type(torch.FloatTensor))
+        x = self.conv(inputs.type(torch.cuda.FloatTensor))
         return x + self.bias.view(1,-1,1,1,1).expand_as(x)
  
     
