@@ -5,7 +5,8 @@
 import os
 import math
 import torch
-#import torch.utils.data as data
+# import torch.utils.data as data
+from torch.autograd import Variable
 dtype = torch.cuda.FloatTensor
 
 
