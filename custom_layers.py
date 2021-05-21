@@ -12,13 +12,6 @@ import torch.nn as nn
 from torch.nn.init import xavier_normal, kaiming_normal, calculate_gain
 from torch.autograd import Variable
 
-if torch.cuda.is_available():
-    use_cuda = True
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
-else:
-    use_cuda = False
-    torch.set_default_tensor_type('torch.FloatTensor')
-
 
 class Concat(nn.Module):
     '''
