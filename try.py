@@ -1,6 +1,7 @@
 import argparse
 import time
 import os
+from video_dataset import *
 
 
 help_description = 'This script trains a FutureGAN model for video prediction according to the specified optional arguments.'
@@ -66,6 +67,8 @@ parser.add_argument('--save_ckpt_every', type=int, default=5, help='save checkpo
 # parse and save training config
 config = parser.parse_args()
 
+
+dataset = load_dataset(config.experiment_name)
 
 log_dir = config.log_dir+'/'+ config.experiment_name
 if not os.path.exists(log_dir):

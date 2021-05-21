@@ -161,9 +161,9 @@ class Trainer:
 
         # save config settings to file
         with open(self.log_dir+'/train_config.txt', 'w') as f:
-            print('------------- training configuration -------------', f)
+            print('------------- training configuration -------------', file=f)
             for k, v in vars(config).items():
-                print(('{}: {}').format(k, v), f)
+                print(('{}: {}').format(k, v), file=f)
             print(' ... loading training configuration ... ')
             print(' ... saving training configuration to {}'.format(f))
 
@@ -537,7 +537,7 @@ class Trainer:
     def get_batch(self):
         while True:
             for sequence in self.dataloader:
-                batch = sequence
+                batch = normalize_data(sequence)
                 yield batch
 
     def train(self):
