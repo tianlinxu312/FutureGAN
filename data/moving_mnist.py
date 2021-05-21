@@ -7,7 +7,7 @@ import numpy as np
 class MovingMNIST(object):
     """Data Handler that creates Bouncing MNIST dataset on the fly."""
 
-    def __init__(self, train, data_root='../data/mmnist/', seq_len=20, num_digits=2,
+    def __init__(self, train, data_root='../data/mmnist/mnist_training_set.npy', seq_len=20, num_digits=2,
                  image_size=64, deterministic=True):
         self.path = data_root
         self.seq_len = seq_len
