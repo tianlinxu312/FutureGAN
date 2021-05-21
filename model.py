@@ -6,6 +6,12 @@ import torch
 import torch.nn as nn
 from custom_layers import *
 
+if torch.cuda.is_available():
+    use_cuda = True
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+else:
+    use_cuda = False
+    torch.set_default_tensor_type('torch.FloatTensor')
 
 # =============================================================================
 # Modules

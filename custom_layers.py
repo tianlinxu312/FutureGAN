@@ -12,6 +12,13 @@ import torch.nn as nn
 from torch.nn.init import xavier_normal, kaiming_normal, calculate_gain
 from torch.autograd import Variable
 
+if torch.cuda.is_available():
+    use_cuda = True
+    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+else:
+    use_cuda = False
+    torch.set_default_tensor_type('torch.FloatTensor')
+
 
 class Concat(nn.Module):
     '''
@@ -107,7 +114,9 @@ class EqualizedConv3d(nn.Module):
         self.conv_w = self.conv.weight.data.clone()
         self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.conv.weight.data ** 2)) ** 0.5
-        self.conv.weight.data.copy_(self.conv.weight.data/self.scale)
+        self.scale = self.scale.type(torch.FloatTensor)
+        self.weight_d = self.conv.weight.data/self.scale
+        self.conv.weight.data.copy_(self.weight_d.type(torch.FloatTensor))
 
 
     def forward(self, x):
