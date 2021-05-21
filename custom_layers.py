@@ -120,7 +120,8 @@ class EqualizedConv3d(nn.Module):
 
 
     def forward(self, x):
-        x = self.conv(x.mul(self.scale))
+        inputs = x.mul(self.scale)
+        x = self.conv(inputs.type(torch.FloatTensor))
         return x + self.bias.view(1,-1,1,1,1).expand_as(x)
  
     
