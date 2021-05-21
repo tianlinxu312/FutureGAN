@@ -99,4 +99,9 @@ class DataReader(object):
             new_frame_dimensions = (self._custom_frame_size,) * 2 + (_NUM_CHANNELS,)
             frames = tf.image.resize(frames, new_frame_dimensions[:2])
             frames = tf.reshape(frames, (-1, self._dataset_info.sequence_size) + new_frame_dimensions)
-        return tf.transpose(tf.squeeze(frames[:, :self.time_steps, :, :]), (1, 0, 2, 3))
+
+        frames = tf.transpose(tf.squeeze(frames[:, :self.time_steps, :, :]), (1, 0, 2, 3))
+        frames = tf.transpose(frames, (0, 1, 3, 2))
+        frames = tf.transpose(frames, (0, 2, 1, 3))
+        frames = tf.transpose(frames, (1, 0, 2, 3))
+        return frames
