@@ -29,17 +29,17 @@ The implementation of the wgan-gp loss borrows from:
 import os
 import time
 import argparse
-from PIL import Image
 from math import floor, ceil
 import numpy as np
 from tqdm import tqdm
+from PIL import Image
 import torch
 from torch.autograd import Variable
 from torch.optim import Adam
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
 from utils import save_video_grid, count_model_params
 from video_dataset import *
-from torch.utils.data import DataLoader
 import model as model
 
 
@@ -131,7 +131,6 @@ else:
     torch.set_default_tensor_type('torch.FloatTensor')
 
 
-
 # =============================================================================
 # training routine
 
@@ -151,7 +150,7 @@ class Trainer:
         self.config = config
 
         # log directory
-        if self.config.experiment_name=='':
+        if self.config.experiment_name == '':
             self.experiment_name = current_time
         else:
             self.experiment_name = self.config.experiment_name
@@ -161,10 +160,10 @@ class Trainer:
             os.makedirs(self.log_dir)
 
         # save config settings to file
-        with open(self.log_dir+'/train_config.txt','w') as f:
-            print('------------- training configuration -------------', file=f)
+        with open(self.log_dir+'/train_config.txt', 'w') as f:
+            print('------------- training configuration -------------', f)
             for k, v in vars(config).items():
-                print(('{}: {}').format(k, v), file=f)
+                print(('{}: {}').format(k, v), f)
             print(' ... loading training configuration ... ')
             print(' ... saving training configuration to {}'.format(f))
 
@@ -457,7 +456,7 @@ class Trainer:
         self.batch_size = 8
         self.dataset = load_dataset(self.experiment_name)
         self.dataloader = DataLoader(self.dataset,
-                                  num_workers=self.nworkers,
+                                  num_workers=0,
                                   batch_size=self.batch_size,
                                   shuffle=True)
         # self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
@@ -507,6 +506,7 @@ class Trainer:
                                                 transforms.ToTensor(),
                                             ] )
 
+
             x_low = x.clone().add(1).mul(0.5)
             for i in range(x_low.size(0)):
                 for j in range(x_low.size(2)):
@@ -534,12 +534,11 @@ class Trainer:
         z = Variable(torch.from_numpy(z)).cuda() if self.use_cuda else Variable(torch.from_numpy(z))
         return x + z
 
-
     def get_batch(self):
-
-        dataIter = iter(self.dataloader)
-        return next(dataIter)
-
+        while True:
+            for sequence in self.dataloader:
+                batch = sequence
+                yield batch
 
     def train(self):
 
@@ -568,7 +567,8 @@ class Trainer:
                 self.D.zero_grad()
 
                 # interpolate discriminator real input
-                self.x.data = self.feed_interpolated_input(self.get_batch())
+                # self.x.data = self.feed_interpolated_input(self.get_batch())
+                self.x.data = next(self.get_batch())
 
                 # if 'x_add_noise' --> input to generator without noise, input to discriminator with noise
                 self.z.data = self.x.data[:,:,:self.nframes_in,:,:]
@@ -826,6 +826,8 @@ class Trainer:
         return var.data.numpy()
 
 
+
+
 # use cudnn backends to boost speed
 torch.backends.cudnn.benchmark = True
 
@@ -834,3 +836,5 @@ if config.data_root=='':
 else:
     trainer = Trainer(config)
     trainer.train()
+
+
