@@ -457,11 +457,9 @@ class Trainer:
         self.batch_size = 8
         self.dataset = load_dataset(self.experiment_name)
         self.dataloader = DataLoader(self.dataset,
-                                  num_workers=5,
+                                  num_workers=self.nworkers,
                                   batch_size=self.batch_size,
-                                  shuffle=True,
-                                  drop_last=True,
-                                  pin_memory=True)
+                                  shuffle=True)
         # self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
         # self.dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.nworkers)
         self.epoch_tick = int(ceil(len(self.dataset)/self.batch_size))
