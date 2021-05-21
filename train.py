@@ -542,6 +542,8 @@ class Trainer:
 
     def train(self):
 
+        batch_generator = self.get_batch()
+
         # train loop
         for step in range(self.start_resl, self.max_resl+2):
 
@@ -568,7 +570,7 @@ class Trainer:
 
                 # interpolate discriminator real input
                 # self.x.data = self.feed_interpolated_input(self.get_batch())
-                self.x.data = next(self.get_batch())
+                self.x.data = next(batch_generator)
 
                 # if 'x_add_noise' --> input to generator without noise, input to discriminator with noise
                 self.z.data = self.x.data[:,:,:self.nframes_in,:,:]

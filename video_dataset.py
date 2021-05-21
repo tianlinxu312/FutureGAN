@@ -29,4 +29,4 @@ def sequence_input(seq):
 
 
 def normalize_data(sequence):
-    return sequence_input(sequence)
+    return sequence
