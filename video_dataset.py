@@ -25,7 +25,7 @@ def load_dataset(dataset):
 
 
 def sequence_input(seq):
-    return [Variable(x.type(dtype)) for x in seq]
+    return [x.type(dtype) for x in seq]
 
 
 def normalize_data(sequence):

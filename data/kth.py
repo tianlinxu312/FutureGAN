@@ -55,7 +55,7 @@ class KTH(object):
         stacked_frames = np.reshape(stacked_frames, newshape=(self.seq_len, self.image_size, self.image_size, 3))
         stacked_frames = np.transpose(stacked_frames, (0, 1, 3, 2))
         stacked_frames = np.transpose(stacked_frames, (0, 2, 1, 3))
-        stacked_frames = np.transpose(stacked_frames, (1, 0, 2, 3))
+        stacked_frames = np.transpose(stacked_frames, (1, 0, 2, 3)).astype(np.float32)
         return stacked_frames
 
     def __getitem__(self, index):
