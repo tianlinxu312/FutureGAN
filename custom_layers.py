@@ -13,6 +13,14 @@ from torch.nn.init import xavier_normal, kaiming_normal, calculate_gain
 from torch.autograd import Variable
 
 
+if torch.cuda.is_available():
+    use_cuda = True
+    dtype = torch.cuda.FloatTensor
+else:
+    use_cuda = False
+    dtype = torch.FloatTensor
+
+
 class Concat(nn.Module):
     '''
     same function as ConcatTable container in Torch7
@@ -22,12 +30,10 @@ class Concat(nn.Module):
         super(Concat, self).__init__()
         self.layer1 = layer1
         self.layer2 = layer2
-        
-        
+
     def forward(self,x):
         y = [self.layer1(x), self.layer2(x)]
         return y
-
 
 
 class Flatten(nn.Module):
@@ -35,37 +41,29 @@ class Flatten(nn.Module):
     def __init__(self):
         super(Flatten, self).__init__()
 
-
     def forward(self, x):
         return x.view(x.size(0), -1)
-      
-    
+
     
 class FadeInLayer(nn.Module):
-    
     def __init__(self, config):
         super(FadeInLayer, self).__init__()
         self.alpha = 0.0
-
 
     def update_alpha(self, delta):
         self.alpha = self.alpha + delta
         self.alpha = max(0, min(self.alpha, 1.0))
 
-
     # input : [x_low, x_high] from ConcatTable()
     def forward(self, x):
         return torch.add(x[0].mul(1.0-self.alpha), x[1].mul(self.alpha))
-    
-    
+
 
 class MinibatchStdConcatLayer(nn.Module):
-    
     def __init__(self, averaging='all'):
         super(MinibatchStdConcatLayer, self).__init__()
         self.averaging = averaging
-        
-        
+
     def forward(self, x):
         s = x.size()                                    # [NCDHW] Input shape.
         y = x
@@ -78,18 +76,14 @@ class MinibatchStdConcatLayer(nn.Module):
         x = torch.cat([x, y], 1)                        # [NCHW] Append as new fmap.
         return x
     
-    
     def __repr__(self):
         return self.__class__.__name__ + '(averaging = %s)' % (self.averaging)
 
 
-
 class PixelwiseNormLayer(nn.Module):
-    
     def __init__(self):
         super(PixelwiseNormLayer, self).__init__()
         self.eps = 1e-8
-
 
     def forward(self, x):
         return x / (torch.mean(x**2, dim=1, keepdim=True) + self.eps) ** 0.5
@@ -106,17 +100,15 @@ class EqualizedConv3d(nn.Module):
         self.conv_w = self.conv.weight.data.clone()
         self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.conv.weight.data ** 2)) ** 0.5
-        self.scale = self.scale.type(torch.cuda.FloatTensor)
+        self.scale = self.scale.type(dtype)
         self.weight_d = self.conv.weight.data/self.scale
         self.conv.weight.data.copy_(self.weight_d)
 
-
     def forward(self, x):
         inputs = x.mul(self.scale)
-        x = self.conv(inputs.type(torch.cuda.FloatTensor))
+        x = self.conv(inputs.type(dtype))
         return x + self.bias.view(1,-1,1,1,1).expand_as(x)
- 
-    
+
       
 class EqualizedConvTranspose3d(nn.Module):
   
@@ -130,18 +122,16 @@ class EqualizedConvTranspose3d(nn.Module):
         self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.deconv.weight.data ** 2)) ** 0.5
         self.deconv.weight.data.copy_(self.deconv.weight.data/self.scale)
-        
-        
+
     def forward(self, x):
         x = self.deconv(x.mul(self.scale))
         return x + self.bias.view(1,-1,1,1,1).expand_as(x)
-        
-    
-    
+
+
 class EqualizedLinear(nn.Module):
-    
     def __init__(self, c_in, c_out, initializer='kaiming'):
         super(EqualizedLinear, self).__init__()
+        self.c_in = c_in
         self.linear = nn.Linear(c_in, c_out, bias=False)
         if initializer == 'kaiming':    kaiming_normal(self.linear.weight, a=calculate_gain('linear'))
         elif initializer == 'xavier':   torch.nn.init.xavier_normal(self.linear.weight)
@@ -150,12 +140,11 @@ class EqualizedLinear(nn.Module):
         self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.linear.weight.data ** 2)) ** 0.5
         self.linear.weight.data.copy_(self.linear.weight.data/self.scale)
-        
-        
-    def forward(self, x):
-        x = self.linear(x.mul(self.scale))
-        return x + self.bias.view(1,-1).expand_as(x)
 
+    def forward(self, x):
+        inputs = x.mul(self.scale)
+        x = self.linear(inputs.type(dtype))
+        return x + self.bias.view(1, -1).expand_as(x)
 
 
 class GeneralizedDropOut(nn.Module):
@@ -173,7 +162,6 @@ class GeneralizedDropOut(nn.Module):
         self.axes = [axes] if isinstance(axes, int) else list(axes)
         self.normalize = normalize
         self.gain = None
-
 
     def forward(self, x, deterministic=False):
         if deterministic or not self.strength:
@@ -195,7 +183,6 @@ class GeneralizedDropOut(nn.Module):
         if x.is_cuda:
             rnd = rnd.cuda()
         return x * rnd
-
 
     def __repr__(self):
         param_str = '(mode = %s, strength = %s, axes = %s, normalize = %s)' % (self.mode, self.strength, self.axes, self.normalize)

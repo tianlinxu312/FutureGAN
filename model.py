@@ -57,13 +57,14 @@ def conv(layers, c_in, c_out, k_size, stride=1, pad=0, padding='zero', lrelu=Tru
     return layers
 
 
-def linear(layers, c_in, c_out, sig=True, w_norm=False):
-
-    layers.append(Flatten())
-    if w_norm:  layers.append(EqualizedLinear(c_in, c_out))
-    else:       layers.append(nn.Linear(c_in, c_out))
-    if sig:     layers.append(nn.Sigmoid())
-    return layers
+def linear(c_in, c_out, sig=True, w_norm=False):
+    if w_norm:
+        layer = EqualizedLinear(c_in, c_out)
+    else:
+        layer = nn.Linear(c_in, c_out)
+    if sig:
+        layer = nn.Sigmoid()
+    return layer
 
 
 def deepcopy_module(module, target):
@@ -344,23 +345,22 @@ class Discriminator(nn.Module):
         self.module_names = []
         self.model = self.get_init_dis()
 
-
     def last_block(self):
-
         # add MinibatchStdConcatLayer later.
         ndim = self.ndf
         layers = []
         layers.append(MinibatchStdConcatLayer())
-        layers = conv(layers, ndim+1, ndim, 3, 1, 1, self.padding, self.lrelu, self.batch_norm, self.w_norm, self.d_gdrop, pixel_norm=False)
-        layers = conv(layers, ndim, ndim, (self.nframes,4,4), 1, 0, self.padding, self.lrelu, self.batch_norm, self.w_norm, self.d_gdrop, pixel_norm=False)
-        layers = linear(layers, ndim, 1, sig=self.d_sigmoid, w_norm=self.w_norm)
+        layers = conv(layers, ndim+1, ndim, 3, 1, 1, self.padding, self.lrelu, self.batch_norm, self.w_norm,
+                      self.d_gdrop, pixel_norm=False)
+        layers = conv(layers, ndim, ndim, (self.nframes,4,4), 1, 0, self.padding, self.lrelu, self.batch_norm,
+                      self.w_norm, self.d_gdrop, pixel_norm=False)
+        #layers = linear(layers, ndim, 1, sig=self.d_sigmoid, w_norm=self.w_norm)
         return  nn.Sequential(*layers), ndim
 
-
     def intermediate_block(self, resl):
-
         halving = False
-        layer_name = 'intermediate_{}x{}_{}x{}'.format(int(pow(2,resl)), int(pow(2,resl)), int(pow(2, resl-1)), int(pow(2, resl-1)))
+        layer_name = 'intermediate_{}x{}_{}x{}'.format(int(pow(2,resl)), int(pow(2,resl)), int(pow(2, resl-1)),
+                                                       int(pow(2, resl-1)))
         ndim = self.ndf
         if resl==3 or resl==4 or resl==5:
             halving = False
@@ -381,16 +381,13 @@ class Discriminator(nn.Module):
 
         return  nn.Sequential(*layers), ndim, layer_name
 
-
     def from_rgb_block(self, ndim):
 
         layers = []
         layers = conv(layers, self.nc, ndim, 1, 1, 0, self.padding, self.lrelu, self.batch_norm, self.w_norm, self.d_gdrop, pixel_norm=False)
         return  nn.Sequential(*layers)
 
-
     def get_init_dis(self):
-
         model = nn.Sequential()
         last_block, ndim = self.last_block()
         model.add_module('from_rgb_block', self.from_rgb_block(ndim))
@@ -398,9 +395,7 @@ class Discriminator(nn.Module):
         self.module_names = get_module_names(model)
         return model
 
-
     def grow_network(self, resl):
-
         inter_block, ndim, self.layer_name = self.intermediate_block(resl)
 
         layers = []
@@ -436,7 +431,6 @@ class Discriminator(nn.Module):
 
 
     def flush_network(self):
-
         try:
             print(' ... flushing discriminator ... ')
             # make deep copy and paste.
@@ -459,7 +453,6 @@ class Discriminator(nn.Module):
         except:
             self.model = self.model
 
-
     def freeze_layers(self):
 
         # let's freeze pretrained blocks. (Found freezing layers not helpful, so did not use this func.)
@@ -467,8 +460,13 @@ class Discriminator(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = False
 
-
     def forward(self, x):
-
         x = self.model(x)
+
+        x = torch.reshape(x, [1, -1])
+
+        layer = linear(x.shape[1], 1, sig=self.d_sigmoid, w_norm=self.w_norm)
+
+        x = layer(x)
+
         return x

@@ -33,6 +33,7 @@ class MovingMNIST(object):
     def load_dataset(self):
         training_data = np.load(self.path) / 255.0
         training_data = np.transpose(training_data, (1, 0, 2, 3))
+        self.sample_size = training_data.shape[0]
         training_data = np.reshape(training_data, [self.sample_size, self.seq_len, self.image_size, self.image_size, 1])
         training_data = np.transpose(training_data, (0, 1, 2, 4, 3))
         training_data = np.transpose(training_data, (0, 1, 3, 2, 4))

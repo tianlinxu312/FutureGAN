@@ -59,7 +59,7 @@ parser.add_argument('--ext', action='append', default=['.jpg', '.jpeg', '.png', 
 parser.add_argument('--use_ckpt', type=bool, default=False, help='continue training from checkpoint, default=`False`')
 
 parser.add_argument('--ckpt_path', action='append', help='list of path(s) to training checkpoints to continue training or for testing, [0] Generator and [1] Discriminator, default=``')
-parser.add_argument('--data_root', type=str, default='', help='path to root directory of training data (ex. -->path_to_dataset/train)')
+parser.add_argument('--data_root', type=str, default='../data', help='path to root directory of training data (ex. -->path_to_dataset/train)')
 parser.add_argument('--log_dir', type=str, default='./logs', help='path to directory of log files')
 parser.add_argument('--experiment_name', type=str, default='mmnist', help='name of experiment (if empty, current date and time will be used), default=``')
 
@@ -116,7 +116,7 @@ current_time = time.strftime('%Y-%m-%d_%H%M%S')
 
 # =============================================================================
 #  import Logger if --tb_logging==True
-if  config.tb_logging:
+if config.tb_logging:
     from tb_logger import Logger
 
 
@@ -453,7 +453,7 @@ class Trainer:
     def renew_everything(self):
         # renew dataloader
         self.img_size = int(pow(2, min(floor(self.resl), self.max_resl)))
-        self.batch_size = 8
+        self.batch_size = 1
         self.dataset = load_dataset(self.experiment_name)
         self.dataloader = DataLoader(self.dataset,
                                   num_workers=0,
