@@ -453,7 +453,7 @@ class Trainer:
     def renew_everything(self):
         # renew dataloader
         self.img_size = int(pow(2, min(floor(self.resl), self.max_resl)))
-        self.batch_size = 1
+        self.batch_size = 8
         self.dataset = load_dataset(self.experiment_name)
         self.dataloader = DataLoader(self.dataset,
                                   num_workers=0,
