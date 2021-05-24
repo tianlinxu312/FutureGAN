@@ -201,6 +201,11 @@ class Trainer:
         self.fadein = {'G':None, 'D':None}
         self.init_resl = 2
         self.init_img_size = int(pow(2, self.init_resl))
+        self.datasize = 8000
+        if self.experiment_name == "kth":
+            self.datasize = 600
+        elif self.experiment_name == "mazes":
+            self.datasize = 900
 
         # initialize model G as FutureGenerator from model.py
         self.G = model.FutureGenerator(config)
@@ -254,7 +259,7 @@ class Trainer:
             # save initial model structure to file
             with open(self.log_dir+'/initial_model_structure_{}x{}.txt'.format(self.init_img_size, self.init_img_size),'w') as f:
                 print('--------------------------------------------------', file=f)
-                print('Sequences in Dataset: ', len(self.dataset), ', Batch size: ', self.batch_size, file=f)
+                print('Sequences in Dataset: ', self.datasize, ', Batch size: ', self.batch_size, file=f)
                 print('Global iteration step: ', self.globalIter, ', Epoch: ', self.epoch, file=f)
                 print('Phase: ', self.phase, file=f)
                 print('Number of Generator`s model parameters: ', file=f)
@@ -324,7 +329,7 @@ class Trainer:
             # save loaded model structure to file
             with open(self.log_dir+'/resumed_model_structure_{}x{}.txt'.format(img_size, img_size),'w') as f:
                 print('--------------------------------------------------', file=f)
-                print('Sequences in Dataset: ', len(self.dataset), file=f)
+                print('Sequences in Dataset: ', self.datasize, file=f)
                 print('Global iteration step: ', self.globalIter, ', Epoch: ', self.epoch, file=f)
                 print('Phase: ', self.phase, file=f)
                 print('--------------------------------------------------', file=f)
@@ -367,7 +372,7 @@ class Trainer:
 
         # alpha and delta parameters for smooth fade-in (resl-interpolation)
         delta = 1.0/(self.trns_tick+self.stab_tick)
-        d_alpha = 1.0*self.batch_size/self.trns_tick/len(self.dataset)
+        d_alpha = 1.0*self.batch_size/self.trns_tick/self.datasize
 
         # update alpha if FadeInLayer exist
         if self.fadein['D'] is not None:
@@ -383,7 +388,7 @@ class Trainer:
         # increase resl linearly every tick
         prev_nsamples = self.nsamples
         self.nsamples = self.nsamples + self.batch_size
-        if (self.nsamples%len(self.dataset)) < (prev_nsamples%len(self.dataset)):
+        if (self.nsamples%self.datasize) < (prev_nsamples%self.datasize):
             self.nsamples = 0
 
             prev_resl = floor(self.resl)
@@ -422,7 +427,6 @@ class Trainer:
                 self.phase = 'final'
                 self.resl = self.max_resl+self.trns_tick*delta
 
-
     def print_model_structure(self):
 
         img_size = self.img_size
@@ -433,7 +437,7 @@ class Trainer:
 
         with open(self.log_dir+'/model_structure_{}x{}.txt'.format(img_size, img_size),'a') as f:
             print('--------------------------------------------------', file=f)
-            print('Sequences in Dataset: ', len(self.dataset), file=f)
+            print('Sequences in Dataset: ', self.datasize, file=f)
             print('Global iteration step: ', self.globalIter, ', Epoch: ', self.epoch, file=f)
             print('Phase: ', self.phase, file=f)
             print('Number of Generator`s model parameters: ', file=f)
@@ -450,7 +454,6 @@ class Trainer:
             print(' ... models are being updated ... ')
             print(' ... saving updated model strutures to {}'.format(f))
 
-
     def renew_everything(self):
         # renew dataloader
         self.img_size = int(pow(2, min(floor(self.resl), self.max_resl)))
@@ -463,7 +466,7 @@ class Trainer:
                                      drop_last=True)
         # self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
         # self.dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.nworkers)
-        self.epoch_tick = int(ceil(len(self.dataset)/self.batch_size))
+        self.epoch_tick = int(ceil(self.datasize/self.batch_size))
 
         # define tensors
         self.real_label = Variable(torch.FloatTensor(self.batch_size, 1).fill_(1))
@@ -520,10 +523,8 @@ class Trainer:
         else:
             return x
 
-
     def add_noise(self, x):
-
-        if self.x_add_noise==False:
+        if self.x_add_noise == False:
             return x
 
         # add noise to variable
@@ -547,15 +548,15 @@ class Trainer:
         batch_generator = self.get_batch()
 
         # train loop
-        for step in range(self.start_resl, self.max_resl+2):
+        for step in range(self.start_resl, self.max_resl+1):
 
             for iter in tqdm(range(self.iter_start,
-                                   (self.trns_tick+self.stab_tick)*int(ceil(len(self.dataset)/self.batch_size)))):
+                                   (self.trns_tick+self.stab_tick)*int(ceil(self.datasize/self.batch_size)))):
 
                 self.iter = iter
                 self.globalIter = self.globalIter+1
                 self.stack = self.stack + self.batch_size
-                if self.stack > ceil(len(self.dataset)):
+                if self.stack > ceil(self.datasize):
                     self.epoch = self.epoch + 1
                     self.stack = 0
 
