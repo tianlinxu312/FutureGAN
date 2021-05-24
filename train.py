@@ -75,10 +75,11 @@ parser.add_argument('--batch_size_table', type=dict, default={4:32, 8:16, 16:8, 
 parser.add_argument('--trns_tick', type=int, default=10, help='number of epochs for transition phase, default=10')
 parser.add_argument('--stab_tick', type=int, default=10, help='number of epochs for stabilization phase, default=10')
 
+size = 32
 # training
-parser.add_argument('--nz', type=int, default=512, help='dimension of input noise vector z, default=512')
-parser.add_argument('--ngf', type=int, default=512, help='feature dimension of final layer of generator, default=512')
-parser.add_argument('--ndf', type=int, default=512, help='feature dimension of first layer of discriminator, default=512')
+parser.add_argument('--nz', type=int, default=size, help='dimension of input noise vector z, default=512')
+parser.add_argument('--ngf', type=int, default=size, help='feature dimension of final layer of generator, default=512')
+parser.add_argument('--ndf', type=int, default=size, help='feature dimension of first layer of discriminator, default=512')
 
 parser.add_argument('--loss', type=str, default='wgan_gp', help='which loss functions to use (choices: `gan`, `lsgan` or `wgan_gp`), default=`wgan_gp`')
 parser.add_argument('--d_eps_penalty', type=bool, default=True, help='adding an epsilon penalty term to wgan_gp loss to prevent loss drift (eps=0.001), default=True')
@@ -458,7 +459,8 @@ class Trainer:
         self.dataloader = DataLoader(self.dataset,
                                   num_workers=0,
                                   batch_size=self.batch_size,
-                                  shuffle=True)
+                                  shuffle=True,
+                                     drop_last=True)
         # self.dataset = VideoFolder(video_root=self.train_data_root, video_ext=self.ext, nframes=self.nframes, loader=self.video_loader, transform=self.transform_video)
         # self.dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.nworkers)
         self.epoch_tick = int(ceil(len(self.dataset)/self.batch_size))
@@ -571,6 +573,8 @@ class Trainer:
                 # interpolate discriminator real input
                 # self.x.data = self.feed_interpolated_input(self.get_batch())
                 self.x.data = next(batch_generator)
+                # if self.x.data.shape[0] < self.batch_size:
+                #    continue
 
                 # if 'x_add_noise' --> input to generator without noise, input to discriminator with noise
                 self.z.data = self.x.data[:,:,:self.nframes_in,:,:]
@@ -579,7 +583,7 @@ class Trainer:
                 if self.config.d_cond:
                     self.z_x_gen = self.G(self.z)
                     self.x_gen.data = self.z_x_gen.data[:,:,self.nframes_in:,:,:]
-                    self.x_label = self.D(self.x.detach())
+                    self.x_label = self.D(self.x)
                     self.x_gen_label = self.D(self.z_x_gen.detach())
                 else:
                     self.x_gen = self.G(self.z)
@@ -620,7 +624,7 @@ class Trainer:
                     gradients = torch.autograd.grad(outputs=interpolates_label, inputs=interpolates,
                               grad_outputs=torch.ones(interpolates_label.size()).cuda() if self.use_cuda else torch.ones(interpolates_label.size()),
                               create_graph=True, retain_graph=True, only_inputs=True)[0]
-#                    gradients = torch.autograd.grad(outputs=interpolates_label.sum().cuda() if self.use_cuda else interpolates_label.sum(), inputs=interpolates, create_graph=True)[0]
+                    # gradients = torch.autograd.grad(outputs=interpolates_label.sum().cuda() if self.use_cuda else interpolates_label.sum(), inputs=interpolates, create_graph=True)[0]
                     gradients = gradients.view(gradients.size(0), -1)
                     gradient_penalty = ((gradients.norm(2, dim=1)-1)**2).mean()
                     loss_d = loss_d+lam*gradient_penalty
