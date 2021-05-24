@@ -6,7 +6,7 @@ import torch
 
 
 class KTH(object):
-    def __init__(self, train=True, data_root='../../data/kth', seq_len=20, image_size=64):
+    def __init__(self, train=True, data_root='../data/kth', seq_len=20, image_size=64):
         self.path = data_root
         self.seq_len = seq_len
         self.image_size = image_size
