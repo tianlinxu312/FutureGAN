@@ -75,7 +75,7 @@ parser.add_argument('--batch_size_table', type=dict, default={4:32, 8:16, 16:8, 
 parser.add_argument('--trns_tick', type=int, default=10, help='number of epochs for transition phase, default=10')
 parser.add_argument('--stab_tick', type=int, default=10, help='number of epochs for stabilization phase, default=10')
 
-size = 32
+size = 512
 # training
 parser.add_argument('--nz', type=int, default=size, help='dimension of input noise vector z, default=512')
 parser.add_argument('--ngf', type=int, default=size, help='feature dimension of final layer of generator, default=512')
