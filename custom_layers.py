@@ -137,7 +137,7 @@ class EqualizedLinear(nn.Module):
         elif initializer == 'xavier':   torch.nn.init.xavier_normal(self.linear.weight)
         
         self.linear_w = self.linear.weight.data.clone()
-        self.bias = torch.nn.Parameter(torch.FloatTensor(c_out).fill_(0))
+        self.bias = torch.nn.Parameter(torch.cuda.FloatTensor(c_out).fill_(0))
         self.scale = (torch.mean(self.linear.weight.data ** 2)) ** 0.5
         self.linear.weight.data.copy_(self.linear.weight.data/self.scale)
 
