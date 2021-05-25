@@ -186,7 +186,7 @@ class FutureGenerator(nn.Module):
 
         layers = []
         layers = deconv(layers, ndim, self.nc, 1, 1, 0, self.padding, self.lrelu, self.batch_norm, self.w_norm, self.g_pixelwise_norm, only=True)
-        if self.g_tanh:  layers.append(nn.Tanh())
+        layers.append(nn.Sigmoid())
         return nn.Sequential(*layers)
 
 
