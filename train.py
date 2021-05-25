@@ -61,10 +61,10 @@ parser.add_argument('--use_ckpt', type=bool, default=False, help='continue train
 parser.add_argument('--ckpt_path', action='append', help='list of path(s) to training checkpoints to continue training or for testing, [0] Generator and [1] Discriminator, default=``')
 parser.add_argument('--data_root', type=str, default='../data', help='path to root directory of training data (ex. -->path_to_dataset/train)')
 parser.add_argument('--log_dir', type=str, default='./logs', help='path to directory of log files')
-parser.add_argument('--experiment_name', type=str, default='mmnist', help='name of experiment (if empty, current date and time will be used), default=``')
+parser.add_argument('--experiment_name', type=str, default='mazes', help='name of experiment (if empty, current date and time will be used), default=``')
 
 parser.add_argument('--d_cond', type=bool, default=True, help='condition discriminator on input frames, default=`True`')
-parser.add_argument('--nc', type=int, default=1, help='number of input image color channels, default=3')
+parser.add_argument('--nc', type=int, default=3, help='number of input image color channels, default=3')
 parser.add_argument('--max_resl', type=int, default=64, help='max. frame resolution --> image size: max_resl x max_resl , default=128')
 parser.add_argument('--nframes_in', type=int, default=10, help='number of input video frames in one sample, default=12')
 parser.add_argument('--nframes_pred', type=int, default=10, help='number of video frames to predict in one sample, default=6')
