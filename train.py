@@ -551,7 +551,7 @@ class Trainer:
         for step in range(self.start_resl, self.max_resl+1):
 
             for iter in tqdm(range(self.iter_start,
-                                   (self.trns_tick+self.stab_tick)*int(ceil(self.datasize/self.batch_size)))):
+                                   (self.trns_tick+self.stab_tick)*int(ceil(800/self.batch_size)))):
 
                 self.iter = iter
                 self.globalIter = self.globalIter+1
