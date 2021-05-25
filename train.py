@@ -469,14 +469,14 @@ class Trainer:
         self.epoch_tick = int(ceil(self.datasize/self.batch_size))
 
         # define tensors
-        self.real_label = Variable(torch.FloatTensor(self.batch_size, 1).fill_(1))
-        self.fake_label = Variable(torch.FloatTensor(self.batch_size, 1).fill_(0))
+        self.real_label = Variable(torch.cuda.FloatTensor(self.batch_size, 1).fill_(1))
+        self.fake_label = Variable(torch.cuda.FloatTensor(self.batch_size, 1).fill_(0))
 
         # wrapping autograd Variable.
-        self.z = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes_in, self.img_size, self.img_size))
-        self.x = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
-        self.x_gen = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes_pred, self.img_size, self.img_size))
-        self.z_x_gen = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
+        self.z = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes_in, self.img_size, self.img_size))
+        self.x = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
+        self.x_gen = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes_pred, self.img_size, self.img_size))
+        self.z_x_gen = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
 
         # enable cuda
         if self.use_cuda:
