@@ -469,14 +469,14 @@ class Trainer:
         self.epoch_tick = int(ceil(self.datasize/self.batch_size))
 
         # define tensors
-        self.real_label = Variable(torch.cuda.FloatTensor(self.batch_size, 1).fill_(1))
-        self.fake_label = Variable(torch.cuda.FloatTensor(self.batch_size, 1).fill_(0))
+        self.real_label = Variable(torch.FloatTensor(self.batch_size, 1).fill_(1))
+        self.fake_label = Variable(torch.FloatTensor(self.batch_size, 1).fill_(0))
 
         # wrapping autograd Variable.
-        self.z = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes_in, self.img_size, self.img_size))
-        self.x = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
-        self.x_gen = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes_pred, self.img_size, self.img_size))
-        self.z_x_gen = Variable(torch.cuda.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
+        self.z = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes_in, self.img_size, self.img_size))
+        self.x = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
+        self.x_gen = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes_pred, self.img_size, self.img_size))
+        self.z_x_gen = Variable(torch.FloatTensor(self.batch_size, self.nc, self.nframes, self.img_size, self.img_size))
 
         # enable cuda
         if self.use_cuda:
@@ -615,6 +615,8 @@ class Trainer:
                         alpha = alpha.expand(self.batch_size, self.x[0].nelement()).contiguous().view(self.batch_size, self.x.size(1), self.x.size(2), self.x.size(3), self.x.size(4))
                     if self.use_cuda:
                         alpha = alpha.cuda()
+                        self.z_x_gen.data.cuda()
+                        self.x.data.cuda()
                     if self.config.d_cond:
                         interpolates = alpha*self.x.data+((1-alpha)*self.z_x_gen.data)
                     else:
