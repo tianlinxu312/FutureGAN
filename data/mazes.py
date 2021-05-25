@@ -85,6 +85,26 @@ _NUM_RAW_CAMERA_PARAMS = 5
 _MODES = ('train', 'test')
 
 
+def _get_dataset_files(dateset_info, mode, root):
+    """Generates lists of files for a given dataset version."""
+    basepath = dateset_info.basepath
+    base = os.path.join(root, basepath, mode)
+    if mode == 'train':
+        num_files = dateset_info.train_size
+    else:
+        num_files = dateset_info.test_size
+
+    length = len(str(num_files))
+    template = '{:0%d}-of-{:0%d}.tfrecord' % (length, length)
+    return [os.path.join(base, template.format(i + 1, num_files))
+            for i in range(num_files)]
+
+
+def _convert_frame_data(jpeg_data):
+    decoded_frames = tf.image.decode_jpeg(jpeg_data)
+    return tf.image.convert_image_dtype(decoded_frames, dtype=tf.float32)
+
+
 class DataReader(object):
     """Minimal queue based TFRecord reader.
       You can use this reader to load the datasets used to train Generative Query
