@@ -6,6 +6,19 @@ import torch
 from scipy import misc
 
 
+"""Minimal data reader for GQN TFRecord datasets."""
+
+# nest = tf.contrib.framework.nest
+nest = tf.nest
+seed = 1
+
+DatasetInfo = collections.namedtuple('DatasetInfo', ['basepath', 'train_size', 'test_size', 'frame_size',
+                                                     'sequence_size'])
+Context = collections.namedtuple('Context', ['frames', 'cameras'])
+Query = collections.namedtuple('Query', ['context', 'query_camera'])
+TaskData = collections.namedtuple('TaskData', ['query', 'target'])
+
+
 _DATASETS = dict(
     jaco=DatasetInfo(
         basepath='jaco',
