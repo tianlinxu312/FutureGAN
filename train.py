@@ -131,7 +131,7 @@ else:
     use_cuda = False
     torch.set_default_tensor_type('torch.FloatTensor')
 
-
+print(use_cuda)
 # =============================================================================
 # training routine
 
@@ -617,6 +617,9 @@ class Trainer:
                         alpha = alpha.cuda()
                         self.z_x_gen.data.cuda()
                         self.x.data.cuda()
+                        print(alpha)
+                        print(self.z_x_gen.data)
+                        print(self.x.data)
                     if self.config.d_cond:
                         interpolates = alpha*self.x.data+((1-alpha)*self.z_x_gen.data)
                     else:
