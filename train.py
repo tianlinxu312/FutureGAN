@@ -576,6 +576,8 @@ class Trainer:
                 # interpolate discriminator real input
                 # self.x.data = self.feed_interpolated_input(self.get_batch())
                 self.x.data = next(batch_generator)
+                if self.use_cuda:
+                    self.x.data = self.x.data.cuda()
                 # if self.x.data.shape[0] < self.batch_size:
                 #    continue
 
