@@ -7,7 +7,7 @@ import math
 import torch
 # import torch.utils.data as data
 from torch.autograd import Variable
-dtype = torch.cuda.FloatTensor
+dtype = torch.FloatTensor
 
 
 def load_dataset(dataset):
