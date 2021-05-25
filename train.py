@@ -620,15 +620,15 @@ class Trainer:
                         #self.x.data.cuda()
         
                     if self.config.d_cond:
-                        if alpha.is_cuda():
+                        if alpha.is_cuda:
                             print("alpha is on cuda.")
                         else:
                             print("alpha is not on cuda.")
-                        if self.z_x_gen.data.is_cuda():
+                        if self.z_x_gen.data.is_cuda:
                             print("z_x_gen is on cuda.")
                         else:
                             print("z_x_gen is not on cuda.")
-                        if self.x.data.is_cuda():
+                        if self.x.data.is_cuda:
                             print("x.data is on cuda.")
                         else:
                             print("x.datais not on cuda.")
