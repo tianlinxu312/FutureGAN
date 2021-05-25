@@ -127,11 +127,12 @@ if config.tb_logging:
 if torch.cuda.is_available():
     use_cuda = True
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    print("using cuda")
 else:
     use_cuda = False
     torch.set_default_tensor_type('torch.FloatTensor')
+    print("NOT using cuda")
 
-print(use_cuda)
 # =============================================================================
 # training routine
 
@@ -615,12 +616,22 @@ class Trainer:
                         alpha = alpha.expand(self.batch_size, self.x[0].nelement()).contiguous().view(self.batch_size, self.x.size(1), self.x.size(2), self.x.size(3), self.x.size(4))
                     if self.use_cuda:
                         alpha = alpha.cuda()
-                        self.z_x_gen.data.cuda()
-                        self.x.data.cuda()
-                        print(alpha)
-                        print(self.z_x_gen.data)
-                        print(self.x.data)
+                        #self.z_x_gen.data.cuda()
+                        #self.x.data.cuda()
+        
                     if self.config.d_cond:
+                        if alpha.is_cuda():
+                            print("alpha is on cuda.")
+                        else:
+                            print("alpha is not on cuda.")
+                        if self.z_x_gen.data.is_cuda():
+                            print("z_x_gen is on cuda.")
+                        else:
+                            print("z_x_gen is not on cuda.")
+                        if self.x.data.is_cuda():
+                            print("x.data is on cuda.")
+                        else:
+                            print("x.datais not on cuda.")
                         interpolates = alpha*self.x.data+((1-alpha)*self.z_x_gen.data)
                     else:
                         interpolates = alpha*self.x[:,:,self.nframes_in:,:,:].data+((1-alpha)*self.x_gen.data)
