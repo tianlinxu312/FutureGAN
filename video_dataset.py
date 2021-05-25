@@ -18,9 +18,8 @@ def load_dataset(dataset):
         from data.kth import KTH
         train_data = KTH(train=True)
     elif dataset == 'mazes':
-        from data.mazes import DataReader
-        data_reader = DataReader(dataset=dataset, time_steps=48)
-        train_data = data_reader.provide_dataset()
+        from data.mazes import Mazes
+        train_data = Mazes()
     return train_data
 
 
