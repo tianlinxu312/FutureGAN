@@ -5,6 +5,17 @@ import socket
 import torch
 from scipy import misc
 
+import collections
+import tensorflow as tf
+nest = tf.nest
+
+font = {'family': 'serif',
+        'color':  'white',
+        'weight': 'normal',
+        'size': 7,
+        }
+
+
 
 """Minimal data reader for GQN TFRecord datasets."""
 
