@@ -24,7 +24,7 @@ class Mazes(object):
         return self.sample_size
 
     def load_dataset(self):
-        training_data = np.load(self.path) / 255.0
+        training_data = np.load(self.path)
         # input shape [n, h, seq_len, w, channels]
         training_data = np.transpose(training_data, (0, 2, 1, 3, 4))
         training_data = np.transpose(training_data, (0, 1, 2, 4, 3))
