@@ -547,10 +547,10 @@ class Trainer:
     def train(self):
 
         batch_generator = self.get_batch()
-        self.datasize = 400
+        self.datasize = 900
 
         # train loop
-        for step in range(self.start_resl, self.max_resl+1):
+        for step in range(self.start_resl, self.max_resl+2):
 
             for iter in tqdm(range(self.iter_start,
                                    (self.trns_tick+self.stab_tick)*int(ceil(self.datasize/self.batch_size)))):
